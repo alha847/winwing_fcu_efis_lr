@@ -34,11 +34,12 @@ end
 
 
 -- read actual position of the switches at start
-function read_switches(hiddevice)
+function read_switches()
     local blabla = {}
     local fcu_efis_r = hid_open(0x4098, 0xba01)
 
     local data_in = {hid_read(fcu_efis_r,42)}
+    hid_close(fcu_efis_r)
     local n = data_in[1] -- index start from 1.....
     if (n ~= 41)
     then
@@ -54,16 +55,91 @@ function read_switches(hiddevice)
     --set_array("laminar/A333/autopilot/alt_step_knob_pos", 0, 1) --100ft = value 0, 1000ft = 1
     logMsg("dr = "..get("laminar/A333/autopilot/alt_step_knob_pos"))
 
+    get_efisr_switches()
+
     --hid_read(fcu_efis_r,42)
     --data_in = {hid_read_timeout(fcu_efis_r, 42, 10)}
     --logMsg("data_in = "..data_in[0])
     --local nov, {blabla} = hid_read_timeout(fcu_efis_r,42,500)
     --logMsg("nov = "..nov)
     --logMsg("blabla = "..blabla)
-    hid_close(fcu_efis_r)
+    
     --h
     --local data_in = {hid_read_timeout(hiddevice,42,500)}
     --local n = data_in[1]
+end
+
+function get_efisr_switches()
+
+    local fcu_efis_r = hid_open(0x4098, 0xba01)
+    local data_in = {hid_read(fcu_efis_r,42)}
+    hid_close(fcu_efis_r)
+
+    local n = data_in[1] -- index start from 1.....
+    if (n ~= 41)
+    then
+        --logMsg("invalid input data len skip "..n)
+        return
+    end
+    
+    --inHg/hPa switch
+    --data_in[12], value 0x08 = inhg, 0x10 = hpa
+    local inhg_active = isBitSet(data_in[12],0x08)
+    local hpa_active = isBitSet(data_in[12],0x10)
+    if(inhg_active and not hpa_active) then
+        command_once("laminar/A333/knob/baro/fo_inHg")
+    elseif(not inhg_active and hpa_active) then
+        command_once("laminar/A333/knob/baro/fo_hPa")
+    else
+        LogMsg("Can't read Winwing EFIS R inHg/hPa switch position");
+    end
+
+    --ADF/OFF/VOR 1 switch
+    --data_in[14], value 0x01 = vor1, 0x02 = off1, 0x04 = adf1
+    local vor1_active = isBitSet(data_in[14],0x01)
+    local off1_active = isBitSet(data_in[14],0x02)
+    local adf1_active = isBitSet(data_in[14],0x04)
+    if(vor1_active and not off1_active and not adf1_active) then
+        --VOR 1
+        command_once("sim/instruments/EFIS_1_copilot_sel_vor")
+    elseif(not vor1_active and off1_active and not adf1_active) then
+        --OFF 1
+        command_once("sim/instruments/EFIS_1_copilot_sel_off")
+    elseif(not vor1_active and not off1_active and adf1_active) then
+        --ADF 1
+        command_once("sim/instruments/EFIS_1_copilot_sel_adf")
+    else
+        LogMsg("Can't read Winwing EFIS R ADF/OFF/VOR 1 switch position");
+    end
+
+    --ADF/OFF/VOR 2 switch
+    --data_in[14], 0x08 = vor2, 0x10 = off2, 0x20 = adf2
+    local vor2_active = isBitSet(data_in[14],0x08)
+    local off2_active = isBitSet(data_in[14],0x10)
+    local adf2_active = isBitSet(data_in[14],0x20)
+    if(vor2_active and not off2_active and not adf2_active) then
+        --VOR 2
+        command_once("sim/instruments/EFIS_2_copilot_sel_vor")
+    elseif(not vor2_active and off2_active and not adf2_active) then
+        --OFF 2
+        command_once("sim/instruments/EFIS_2_copilot_sel_off")
+    elseif(not vor2_active and not off2_active and adf2_active) then
+        --ADF 2
+        command_once("sim/instruments/EFIS_2_copilot_sel_adf")
+    else
+        LogMsg("Can't read Winwing EFIS R ADF/OFF/VOR 2 switch position");
+    end
+
+end
+
+--determines whether in a given byte a certain bit is set.
+--both the byte and the "bit" have to be specified as byte,
+--i.e. the third bit (from right to left) means bitValue = 0x08,
+--the first bit means bitValue = 0x01, etc.
+function isBitSet(byteValue, bitValue)
+
+    return (bit.band(byteValue,bitValue) > 0)
+
 end
 
 --todo ensure that the inhg hpa switch gets evaluated immediately after startup, same with adf1 and afd2 switch
