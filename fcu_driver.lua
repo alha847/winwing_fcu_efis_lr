@@ -22,6 +22,7 @@ function init_winwing_device()
             init_switches()
             assign_button()
             lcd_init()
+            --set_led_brightness()
             break
         end
 
@@ -137,6 +138,28 @@ function init_efisr_switches()
 
 end
 
+function set_led_brightness()
+
+    --information on electric busses from A333.lighting.lua
+    local bus1_is_on = (cache_data["bus1_volts"] > 20) --unit volts
+    local bus2_is_on = (cache_data["bus2_volts"] > 20)
+
+    --turn LEDs and LCDs on/off depending on status of electric busses
+    if(bus1_is_on or bus2_is_on) then
+        led_list[1].bind = 128
+        led_list[2].bind = 255
+        led_list[3].bind = 255
+    else
+        led_list[1].bind = 0
+        led_list[2].bind = 0
+        led_list[3].bind = 0
+    end
+
+    --todo allow to set brightness
+    --LEDs and LCDs backlight depending on knobs beneath FCU in the sim
+    --anunciator LEDs depending on the annunciator bright/dim switch in the overhead panel
+
+end
 
 --determines whether in a given byte a certain bit is set.
 --both the byte and the "bit" have to be specified as byte,
@@ -212,9 +235,10 @@ dataref("autopilot_fpa_window", "laminar/A333/autopilot/vvi_fpa_window_open", "r
 dataref("autopilot_hdg_window", "laminar/A333/autopilot/hdg_window_open", "readonly")
 dataref("autopilot_trkfpa", "sim/cockpit2/autopilot/trk_fpa", "readonly")
 dataref("autopilot_alt_mode","laminar/A333/annun/autopilot/alt_mode", "readonly") --annun means annunciator 
+dataref("bus1_volts", "sim/cockpit2/electrical/bus_volts", "readonly", 0)
+dataref("bus2_volts", "sim/cockpit2/electrical/bus_volts", "readonly", 1)
 
-
-local cache_data={}
+cache_data={}
 cache_data["autopilot_spd"] = 0
 cache_data["autopilot_spd_is_mach"] = 0
 cache_data["autopilot_hdg_mag"] = 0
@@ -231,11 +255,14 @@ cache_data["autopilot_fpa_window"] = 0
 cache_data["autopilot_hdg_window"] = 0
 cache_data["autopilot_trkfpa"] = 0
 cache_data["autopilot_alt_mode"] = 0 
+cache_data["bus1_volts"] = 0
+cache_data["bus2_volts"] = 0
 
 --define led 
 led_list = {
-    {id = 0,  bind="", val = 0}, --led backlight
-    {id = 1,  bind="", val = 0}, --lcd backlight
+    {id = 0,  bind="", val = 256}, --led backlight
+    {id = 1,  bind="", val = 256}, --lcd backlight
+    {id = 2,  bind="", val = 256}, --green annunciator backlight
     {id = 3,  bind="autopilot_loc", val = 0},
     {id = 5,  bind="autopilot_ap1", val = 0},
     {id = 7,  bind="autopilot_ap2", val = 0},
@@ -531,6 +558,7 @@ function refresh_dataref()
     --hid_open
     local winwing_hid_dev = hid_open(0x4098, winwing_device.product_id)
     draw_lcd(winwing_hid_dev, str_spd, str_hdg, str_alt, str_vs)
+    set_led_brightness()
     set_led(winwing_hid_dev)
     hid_close(winwing_hid_dev)
    
