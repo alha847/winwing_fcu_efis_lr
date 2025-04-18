@@ -7,14 +7,8 @@ function init_fcu_efis_r()
         then
             logMsg("found fcu and efis r device "..device.product_string)
 
-
-
-
             read_switches()
-            
-
-
-
+        
             assign_button()
             lcd_init()
 
@@ -30,8 +24,6 @@ function init_fcu_efis_r()
     end
 
 end
-
-
 
 -- read actual position of the switches at start
 function read_switches()
@@ -197,6 +189,11 @@ btn["BARO_DEC_R"] = {id=73,dataref="sim/instruments/barometer_copilot_down"}
 btn["BARO_INC_R"] = {id=74,dataref="sim/instruments/barometer_copilot_up"}
 btn["BARO_HG"] = {id=75,dataref="laminar/A333/knob/baro/fo_inHg"}
 btn["BARO_HPA"] = {id=76,dataref="laminar/A333/knob/baro/fo_hPa"} 
+btn["MAP_LS_R"] = {id=77,dataref="alha847/lra333/knob/EFIS_R_map_LS"} 
+btn["MAP_VOR_R"] = {id=78,dataref="alha847/lra333/knob/EFIS_R_map_VOR"}
+btn["MAP_NAV_R"] = {id=79,dataref="alha847/lra333/knob/EFIS_R_map_NAV"} 
+btn["MAP_ARC_R"] = {id=80,dataref="alha847/lra333/knob/EFIS_R_map_ARC"}
+btn["MAP_PLAN_R"] = {id=81,dataref="alha847/lra333/knob/EFIS_R_map_PLAN"}
 btn["VOR1_R"] = {id=88,dataref="sim/instruments/EFIS_1_copilot_sel_vor"}
 btn["OFF1_R"] = {id=89,dataref="sim/instruments/EFIS_1_copilot_sel_off"}
 btn["ADF1_R"] = {id=90,dataref="sim/instruments/EFIS_1_copilot_sel_adf"}
@@ -205,16 +202,46 @@ btn["OFF2_R"] = {id=92,dataref="sim/instruments/EFIS_2_copilot_sel_off"}
 btn["ADF2_R"] = {id=93,dataref="sim/instruments/EFIS_2_copilot_sel_adf"}
 --todo missing efis mode and efis range selector knobs
 
---todo needed
-function switch_zero_one(currVar)
-    if(currVar == 0) then 
-        currVar = 1
-    else
-        currVar = 0
+--Set position of EFIS map mode knob to sim
+--cpt_side: 0 = captain, 1 = first officer
+--desired_mode: 0 = ls, 1 = vor, 2 = nav, 3 = arc, 4 = plan 
+function efis_map_mode_cmd_handler(cpt_side, desired_mode)
+
+    --todo currently only EFIS R supported
+    if(cpt_side ~=1) then
+        return
     end
+
+    --todo efis knobs need to be added to the startup setting
+
+    --Get current EFIS map mode
+    --source:A333.switches.lua
+    local current_mode = cache_data["map_mode_r"]
+
+    --Determine how often the knob has to be turned and in which direction it has to be turned, then
+    --turn the knob in the sim to the desired position.
+    --This quite complicated solution is necessary, as the actual dataref controlling the map mode 
+    --(e.g. laminar/A333/knobs/EFIS_mode_pos_fo) is readonly and can be accessed by certain commands
+    --(e.g. laminar/A333/knobs/fo_EFIS_knob_left) only
+    local mode_diff = current_mode - desired_mode
+    if(mode_diff > 0) then
+        for idx=1,mode_diff do
+            command_once("laminar/A333/knobs/fo_EFIS_knob_left")
+        end
+    elseif(mode_diff < 0) then
+        for idx=1,math.abs(mode_diff) do
+            command_once("laminar/A333/knobs/fo_EFIS_knob_right")
+        end
+    end
+    
 end
 
-cstr_r_led = 0;
+--Custom commands for the EFIS R map mode knob
+create_command("alha847/lra333/knob/EFIS_R_map_LS", "Set EFIS R map mode to LS for LR A333", "efis_map_mode_cmd_handler(1,0)","","")
+create_command("alha847/lra333/knob/EFIS_R_map_VOR", "Set EFIS R map mode to VOR for LR A333", "efis_map_mode_cmd_handler(1,1)","","")
+create_command("alha847/lra333/knob/EFIS_R_map_NAV", "Set EFIS R map mode to NAV for LR A333", "efis_map_mode_cmd_handler(1,2)","","")
+create_command("alha847/lra333/knob/EFIS_R_map_ARC", "Set EFIS R map mode to ARC for LR A333", "efis_map_mode_cmd_handler(1,3)","","")
+create_command("alha847/lra333/knob/EFIS_R_map_PLAN", "Set EFIS R map mode to PLAN for LR A333", "efis_map_mode_cmd_handler(1,4)","","")
 
 function assign_button()
     for _, info in pairs(btn) do
@@ -251,8 +278,9 @@ dataref("ndb_r", "sim/cockpit2/EFIS/EFIS_ndb_on_copilot", "readonly")
 dataref("arpt_r", "sim/cockpit2/EFIS/EFIS_airport_on_copilot", "readonly")
 dataref("baro_rrr", "sim/cockpit2/gauges/actuators/barometer_setting_in_hg_copilot", "readonly")
 dataref("baro_inhg_r", "laminar/A333/barometer/fo_inHg_hPa_pos", "readonly")
+dataref("map_mode_r", "laminar/A333/knobs/EFIS_mode_pos_fo", "readonly")
 
-local cache_data={}
+cache_data={}
 --fcu
 cache_data["autopilot_spd"] = 0
 cache_data["autopilot_spd_is_mach"] = 0
@@ -280,6 +308,7 @@ cache_data["ndb_r"] = 0
 cache_data["arpt_r"] = 0
 cache_data["baro_rrr"] = 0
 cache_data["baro_inhg_r"] = 0
+cache_data["map_mode_r"] = 0
 --todo probably incomplete, e.g. baro unit missing
 
 --define led 
@@ -629,7 +658,7 @@ function refresh_dataref()
             need_refresh  = 1
         end 
     end
-   
+
     if need_refresh == 0 then
         return
     end
