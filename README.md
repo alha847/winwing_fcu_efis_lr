@@ -38,7 +38,10 @@ This work heavily bases on the work from [schenlap](https://github.com/schenlap/
 Use at your own risk. 
 
 ## Next steps
-* Make LED and LCD brightness adjustable
+* Make LED and LCD brightness adjustable using knobs underneath fcu and annun brightness switch
+* Fix backlight of "EXPED" button
+* Finish EFIS R LCD
+* Do EFIS L
 
 ## Known bugs
 * If you turn e.g. the altitude knob at the winwing FCU, sometimes the e.g. altitude value does not stop spinning until it reaches the limit, e.g. 72,000, even when you have stopped turning the knob already
