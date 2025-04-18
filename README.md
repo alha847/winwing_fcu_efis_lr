@@ -8,7 +8,7 @@ This script allows to use Winwing A320 FCU, EFIS L and EFIS R on macOS with X-Pl
 
 The only dependency is FlyWithLua NG+.
 
-Tested on MacBook M1 Pro with macOS 15.4, XP12.2.0 beta 3, default LR A333, FlyWithLua NG+ 2.8.12. todo add fcu, efis l and efis r fw version, 
+Tested on MacBook M1 Pro with macOS 15.4, XP12.2.0 beta 3, default LR A333, FlyWithLua NG+ 2.8.12. Winwing FCU hardware V51.00, firmware V1.20, EFIS L hardware V51.00, firmware V0.97, EFIS R hardware V51.00, firmware V0.99, according to SimAppPro.
 
 This script might work with Windows or Linux as well, but never tested. 
 
