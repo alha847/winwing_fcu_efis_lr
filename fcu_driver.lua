@@ -146,13 +146,19 @@ function set_led_brightness()
 
     --turn LEDs and LCDs on/off depending on status of electric busses
     if(bus1_is_on or bus2_is_on) then
-        led_list[1].bind = 128
-        led_list[2].bind = 255
-        led_list[3].bind = 255
+        led_list_fcu[1].bind = 128
+        led_list_fcu[2].bind = 255
+        led_list_fcu[3].bind = 255
+        led_list_efis_r[1].bind = 128
+        led_list_efis_r[2].bind = 255
+        led_list_efis_r[3].bind = 255
     else
-        led_list[1].bind = 0
-        led_list[2].bind = 0
-        led_list[3].bind = 0
+        led_list_fcu[1].bind = 0
+        led_list_fcu[2].bind = 0
+        led_list_fcu[3].bind = 0
+        led_list_efis_r[1].bind = 0
+        led_list_efis_r[2].bind = 0
+        led_list_efis_r[3].bind = 0
     end
 
     --todo allow to set brightness
@@ -396,18 +402,32 @@ cache_data["map_mode_r"] = 0
 cache_data["map_range_r"] = 0
 
 --define led 
-led_list = {
-    {id = 0,  bind="", val = 256}, --led backlight
-    {id = 1,  bind="", val = 256}, --lcd backlight
-    {id = 2,  bind="", val = 256}, --green annunciator backlight
-    {id = 3,  bind="autopilot_loc", val = 0},
-    {id = 5,  bind="autopilot_ap1", val = 0},
-    {id = 7,  bind="autopilot_ap2", val = 0},
-    {id = 9,  bind="autopilot_athr", val = 0},
-    {id = 11, bind="autopilot_alt_mode", val = 0},
-    {id = 13, bind="autopilot_appr", val = 0},
-    {id = 17, bind="", val = 0},
-    {id = 30, bind="", val = 0},
+--FCU
+led_list_fcu = {
+    {id = 0,    bind="",                    val = 256}, --led backlight
+    {id = 1,    bind="",                    val = 256}, --lcd backlight
+    {id = 2,    bind="",                    val = 256}, --green annunciator backlight
+    {id = 3,    bind="autopilot_loc",       val = 0},
+    {id = 5,    bind="autopilot_ap1",       val = 0},
+    {id = 7,    bind="autopilot_ap2",       val = 0},
+    {id = 9,    bind="autopilot_athr",      val = 0},
+    {id = 11,   bind="autopilot_alt_mode",  val = 0},
+    {id = 13,   bind="autopilot_appr",      val = 0},
+    {id = 17,   bind="",                    val = 0},
+    {id = 30,   bind="",  val = 0},
+}
+--EFIS R
+led_list_efis_r = {
+    {id = 0,    bind="",                    val = 256}, --led backlight
+    {id = 1,    bind="",                    val = 256}, --lcd backlight
+    {id = 2,    bind="",                    val = 256},
+    {id = 3,    bind="fd_r",                val = 0},
+    {id = 4,    bind="ls_r",                val = 0},
+    {id = 5,    bind="cstr_r",              val = 0},
+    {id = 6,    bind="wpt_r",               val = 0},
+    {id = 7,    bind="vord_r",              val = 0},
+    {id = 8,    bind="ndb_r",               val = 0},
+    {id = 9,    bind="arpt_r",              val = 0}  
 }
 
 --define lcd
@@ -435,13 +455,17 @@ lcd_flags["ffpa2"] = {byte = 10, mask = 0x80, value = 0}
 lcd_flags["fpa_comma"] = {byte = 9, mask = 0x10, value = 0}
 lcd_flags["mach_comma"] = {byte = 12, mask = 0x01, value = 0}
 
-function config_led(winwing_hid_dev, led)
+function config_led(winwing_hid_dev, led, dev)
     if (led.bind ~= "") then
         local val,_= loadstring("return "..led.bind)
         local flag = val()
         if (flag ~= led.val) then
             logMsg("set led "..led.id.." "..flag)
-            hid_write(winwing_hid_dev, 0, 0x02, 0x10, 0xbb, 0 , 0, 3, 0x49, led.id, flag, 0, 0, 0, 0, 0)
+            if(dev == "fcu") then
+                hid_write(winwing_hid_dev, 0, 0x02, 0x10, 0xbb, 0 , 0, 3, 0x49, led.id, flag, 0, 0, 0, 0, 0)
+            elseif(dev == "efis_r") then
+                hid_write(winwing_hid_dev, 0, 0x02, 0x0e, 0xbf, 0 , 0, 3, 0x49, led.id, flag, 0, 0, 0, 0, 0)
+            end
             led.val = flag
         end
     end
@@ -449,8 +473,11 @@ end
 
 
 function set_led(winwing_hid_dev)
-    for i, led in pairs(led_list) do
-        config_led(winwing_hid_dev, led)
+    for i, led in pairs(led_list_fcu) do
+        config_led(winwing_hid_dev, led, "fcu")
+    end
+    for i, led in pairs(led_list_efis_r) do
+        config_led(winwing_hid_dev, led, "efis_r")
     end
 end
 
