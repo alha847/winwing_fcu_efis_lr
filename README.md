@@ -45,6 +45,8 @@ Use at your own risk.
 
 ## Known bugs
 * If you turn e.g. the altitude knob at the winwing FCU, sometimes the e.g. altitude value does not stop spinning until it reaches the limit, e.g. 72,000, even when you have stopped turning the knob already
+* Position of map mode and map range knob in EFIS R not initialized correctly
+* Annunciator LEDs not initialized correctly
 * Before the first use, you manually need to set the offset for the button ids in the variable FCU_BUTTON_BEGIN. It seems that the necessary value is a multiple of 160, it might change if you add / remove one of the EFIS devices from the FCU. If you don't change anything with your physical setup, the value should remain the same. You can determine it by ... todo 
 * Please open an Github issue if you find any other bugs
 
