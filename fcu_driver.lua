@@ -369,6 +369,9 @@ dataref("ndb_r", "sim/cockpit2/EFIS/EFIS_ndb_on_copilot", "readonly")
 dataref("arpt_r", "sim/cockpit2/EFIS/EFIS_airport_on_copilot", "readonly")
 dataref("map_mode_r", "laminar/A333/knobs/EFIS_mode_pos_fo", "readonly")
 dataref("map_range_r", "sim/cockpit2/EFIS/map_range_copilot", "readonly")
+dataref("baro_value_r", "sim/cockpit2/gauges/actuators/barometer_setting_in_hg_copilot", "readonly") --baro value in inHg
+dataref("baro_inhg_r", "laminar/A333/barometer/fo_inHg_hPa_pos", "readonly") --0=inhg, 1=hpa
+dataref("baro_mode_r", "laminar/A333/barometer/fo_mode", "readonly") --0=qnh, 1=std
 
 cache_data={}
 --FCU
@@ -400,6 +403,9 @@ cache_data["ndb_r"] = 0
 cache_data["arpt_r"] = 0
 cache_data["map_mode_r"] = 0
 cache_data["map_range_r"] = 0
+cache_data["baro_value_r"] = 0
+cache_data["baro_inhg_r"] = 0
+cache_data["baro_mode_r"] = 0
 
 --define led 
 --FCU
@@ -431,29 +437,35 @@ led_list_efis_r = {
 }
 
 --define lcd
-local lcd_flags = {}
-lcd_flags["spd"] = {byte = 1, mask = 0x08, value = 1}
-lcd_flags["mach"] = {byte = 1, mask = 0x04, value = 0}
-lcd_flags["hdg"] = {byte = 0, mask = 0x80, value = 0}
-lcd_flags["trk"] = {byte = 0, mask = 0x40, value = 0}
-lcd_flags["lat"] = {byte = 0, mask = 0x20, value = 1}
-lcd_flags["vshdg"] = {byte = 7, mask = 0x08, value = 1}
-lcd_flags["vs"] = {byte = 7, mask = 0x04, value = 1}
-lcd_flags["ftrk"] = {byte = 7, mask = 0x02, value = 0}
-lcd_flags["ffpa"] = {byte = 7, mask = 0x01, value = 0}
-lcd_flags["alt"] = {byte = 6, mask = 0x10, value = 1}
-lcd_flags["hdg_managed"] = {byte = 0, mask = 0x10, value = 0}
-lcd_flags["spd_managed"] = {byte = 1, mask = 0x02, value = 0}
-lcd_flags["alt_managed"] = {byte = 11, mask = 0x10, value = 0}
-lcd_flags["vs_horz"] = {byte = 2, mask = 0x10, value = 1}
-lcd_flags["vs_vert"] = {byte = 8, mask = 0x10, value = 0}
-lcd_flags["lvl"] = {byte = 4, mask = 0x10, value = 1}
-lcd_flags["lvl_left"] = {byte = 5, mask = 0x10, value = 1}
-lcd_flags["lvl_right"] = {byte = 3, mask = 0x10, value = 1}
-lcd_flags["fvs"] = {byte = 10, mask = 0x40, value = 1}
-lcd_flags["ffpa2"] = {byte = 10, mask = 0x80, value = 0}
-lcd_flags["fpa_comma"] = {byte = 9, mask = 0x10, value = 0}
-lcd_flags["mach_comma"] = {byte = 12, mask = 0x01, value = 0}
+local lcd_flags_fcu = {}
+--FCU
+lcd_flags_fcu["spd"] = {byte = 1, mask = 0x08, value = 1}
+lcd_flags_fcu["mach"] = {byte = 1, mask = 0x04, value = 0}
+lcd_flags_fcu["hdg"] = {byte = 0, mask = 0x80, value = 0}
+lcd_flags_fcu["trk"] = {byte = 0, mask = 0x40, value = 0}
+lcd_flags_fcu["lat"] = {byte = 0, mask = 0x20, value = 1}
+lcd_flags_fcu["vshdg"] = {byte = 7, mask = 0x08, value = 1}
+lcd_flags_fcu["vs"] = {byte = 7, mask = 0x04, value = 1}
+lcd_flags_fcu["ftrk"] = {byte = 7, mask = 0x02, value = 0}
+lcd_flags_fcu["ffpa"] = {byte = 7, mask = 0x01, value = 0}
+lcd_flags_fcu["alt"] = {byte = 6, mask = 0x10, value = 1}
+lcd_flags_fcu["hdg_managed"] = {byte = 0, mask = 0x10, value = 0}
+lcd_flags_fcu["spd_managed"] = {byte = 1, mask = 0x02, value = 0}
+lcd_flags_fcu["alt_managed"] = {byte = 11, mask = 0x10, value = 0}
+lcd_flags_fcu["vs_horz"] = {byte = 2, mask = 0x10, value = 1}
+lcd_flags_fcu["vs_vert"] = {byte = 8, mask = 0x10, value = 0}
+lcd_flags_fcu["lvl"] = {byte = 4, mask = 0x10, value = 1}
+lcd_flags_fcu["lvl_left"] = {byte = 5, mask = 0x10, value = 1}
+lcd_flags_fcu["lvl_right"] = {byte = 3, mask = 0x10, value = 1}
+lcd_flags_fcu["fvs"] = {byte = 10, mask = 0x40, value = 1}
+lcd_flags_fcu["ffpa2"] = {byte = 10, mask = 0x80, value = 0}
+lcd_flags_fcu["fpa_comma"] = {byte = 9, mask = 0x10, value = 0}
+lcd_flags_fcu["mach_comma"] = {byte = 12, mask = 0x01, value = 0}
+--EFIS R
+local lcd_flags_efisr = {}
+lcd_flags_efisr["qfe"] = {byte = 0, mask = 0x01, value = 1} --todo check value
+lcd_flags_efisr["qnh"] = {byte = 0, mask = 0x02, value = 1} --todo check value
+lcd_flags_efisr["unitInHg"] = {byte = 2, mask = 0x80, value = 1}
 
 function config_led(winwing_hid_dev, led, dev)
     if (led.bind ~= "") then
@@ -562,6 +574,53 @@ function data_from_string(l, input, swap)
     return digit
 end
 
+--l = number of segments in the EFIS R LCD display -> 4
+--input = value to be written as string, without points, e.g. "2992"
+function data_from_string_swapped_efis(l, input) 
+
+    --Ensure correct length of input string
+    if(string.len(input) ~= 4) then
+        return
+    end
+
+    --
+    local n = {}
+    for i=0,l do
+        n[i] = 0
+    end
+
+    --Encode string letter by letter so that it can be sent via hid to the LCD.
+    --Target encoding is suitable for the FCU LCD.
+    local d = data_from_string(l, input) 
+
+    --Convert the encoding for the FCU LCD to the encoding for the  EFIS R LCD, which are 
+    --not the same (for an unknown reason). The two-step process with the FCU encoding in
+    --between has been copied from one of the repos where this is forked from. Probably
+    --it is caused by the order in which the code was implemented.
+    for i =0,l-1 do 
+        n[i] = bit.bor(n[i], bit.band(d[i],0x08)>0 and 0x01 or 0x0 )
+        logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
+        n[i] = bit.bor(n[i], bit.band(d[i],0x04)>0 and 0x02 or 0x0 )
+        logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
+        n[i] = bit.bor(n[i], bit.band(d[i],0x02)>0 and 0x04 or 0x0 )
+        logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
+        n[i] = bit.bor(n[i], bit.band(d[i],0x10)>0 and 0x08 or 0x0 )
+        logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
+        n[i] = bit.bor(n[i], bit.band(d[i],0x80)>0 and 0x10 or 0x0 )
+        logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
+        n[i] = bit.bor(n[i], bit.band(d[i],0x40)>0 and 0x20 or 0x0 )
+        logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
+        n[i] = bit.bor(n[i], bit.band(d[i],0x20)>0 and 0x40 or 0x0 )
+        logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
+        n[i] = bit.bor(n[i], bit.band(d[i],0x01)>0 and 0x80 or 0x0 )
+    end
+
+    --n contains the string to be written to the EFIS R LCD encoded in a format that 
+    --can be sent to the LCD via the hid protocol.
+    return n
+
+end
+
 function fix_str_len(input, len)
     if type(input) == "string" then
         return string.format("%"..len.."s", input)
@@ -588,7 +647,29 @@ function rjust(str, width, fillchar)
     return string.rep(fillchar, padding) .. str
 end
 
-function draw_lcd(winwing_hid_dev ,spd, hdg, alt, vs)
+function draw_efisr_lcd(fcu, baro_r)
+
+    local b = data_from_string_swapped_efis(4, baro_r)
+
+    local bl = {}
+    for _, flag in pairs(lcd_flags_efisr) do
+        if bl[flag.byte] == nil then
+            bl[flag.byte] = 0
+        end
+        bl[flag.byte] = bit.bor(bl[flag.byte] ,(flag.mask *flag.value))
+    end
+
+    local pkg_nr = 1
+    hid_write(fcu, 0, 0xf0, 0x0, pkg_nr, 0x1a, 0x0e, 0xbf, 0x0, 0x0, 0x2, 0x1, 0x0, 0x0, 0xff, 0xff, 0x1d, 0x0, 0x0, 0x09, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+                b[3], bit.bor(b[2],bl[2]),
+                b[1], b[0], 
+                bl[0], 
+                0x0e, 0xbf, 0x0, 0x0, 0x3, 0x1, 0x0, 0x0, 0x4c, 0xc, 0x1d, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
+                )
+
+end
+
+function draw_fcu_lcd(winwing_hid_dev ,spd, hdg, alt, vs)
     local s = data_from_string(3, spd)
     local h = data_from_string(3, hdg, true)
     local a = data_from_string(5, alt, true)
@@ -596,7 +677,7 @@ function draw_lcd(winwing_hid_dev ,spd, hdg, alt, vs)
 
 
     local bl = {}
-    for _, flag in pairs(lcd_flags) do
+    for _, flag in pairs(lcd_flags_fcu) do
         if bl[flag.byte] == nil then
             bl[flag.byte] = 0
         end
@@ -617,13 +698,13 @@ function draw_lcd(winwing_hid_dev ,spd, hdg, alt, vs)
     hid_write(winwing_hid_dev, 0, 0xf0, 0x0, pkg_nr, 0x11, 0x10, 0xbb, 0x0, 0x0, 0x3, 0x1, 0x0, 0x0, 0xff, 0xff, 0x2, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0)
 end
 
-exped_led_state = 0
-
 function round(x)
     return math.floor(x+0.5)
 end
 
 function refresh_dataref()
+    
+    --Check whether refresh is necessary
     local need_refresh = 0
     for ref, v in pairs(cache_data) do
         local val = loadstring("return "..ref)() 
@@ -641,12 +722,14 @@ function refresh_dataref()
         return
     end
     
+    --todo maybe helps to fix the problem of the continuously spinning knobs
     for i = 800,830 do
         if button(i) and last_button(i) then
             logMsg("still press "..i)
         end
     end
 
+    --FCU--
     local spd_is_mach = cache_data["autopilot_spd_is_mach"]
     local trkfpa = cache_data['autopilot_trkfpa']
     --spd 
@@ -662,24 +745,24 @@ function refresh_dataref()
     end
     if vs < 0 then
         vs = math.abs(vs)
-        lcd_flags["vs_vert"].value = 0
+        lcd_flags_fcu["vs_vert"].value = 0
     else 
-        lcd_flags["vs_vert"].value = 1
+        lcd_flags_fcu["vs_vert"].value = 1
     end
 
-    lcd_flags["fpa_comma"].value = 0
+    lcd_flags_fcu["fpa_comma"].value = 0
     --signal flags 
-    lcd_flags["spd"].value = 1-spd_is_mach
-    lcd_flags["mach"].value = spd_is_mach
-    lcd_flags["mach_comma"].value = spd_is_mach
-    lcd_flags["hdg"].value = 1-trkfpa 
-    lcd_flags["trk"].value = trkfpa 
-    lcd_flags["fvs"].value = 1-trkfpa
-    lcd_flags["vshdg"].value = 1-trkfpa
-    lcd_flags["vs"].value = 1-trkfpa
-    lcd_flags["ftrk"].value = trkfpa 
-    lcd_flags["ffpa"].value = trkfpa 
-    lcd_flags["ffpa2"].value = trkfpa 
+    lcd_flags_fcu["spd"].value = 1-spd_is_mach
+    lcd_flags_fcu["mach"].value = spd_is_mach
+    lcd_flags_fcu["mach_comma"].value = spd_is_mach
+    lcd_flags_fcu["hdg"].value = 1-trkfpa 
+    lcd_flags_fcu["trk"].value = trkfpa 
+    lcd_flags_fcu["fvs"].value = 1-trkfpa
+    lcd_flags_fcu["vshdg"].value = 1-trkfpa
+    lcd_flags_fcu["vs"].value = 1-trkfpa
+    lcd_flags_fcu["ftrk"].value = trkfpa 
+    lcd_flags_fcu["ffpa"].value = trkfpa 
+    lcd_flags_fcu["ffpa2"].value = trkfpa 
     
     local str_spd = fix_str_len(spd,3)
     local str_hdg = fix_str_len(hdg,3)
@@ -687,23 +770,23 @@ function refresh_dataref()
     local str_vs = fix_str_len(vs,4)
     
     --manage
-    lcd_flags['spd_managed'].value = 0
-    lcd_flags['hdg_managed'].value = 0
-    lcd_flags['alt_managed'].value = 0
+    lcd_flags_fcu['spd_managed'].value = 0
+    lcd_flags_fcu['hdg_managed'].value = 0
+    lcd_flags_fcu['alt_managed'].value = 0
     if cache_data["autopilot_spd_window"] == 0 then
         str_spd = "---"
-        lcd_flags['mach_comma'].value = 0
-        lcd_flags['spd_managed'].value = 1
+        lcd_flags_fcu['mach_comma'].value = 0
+        lcd_flags_fcu['spd_managed'].value = 1
     end
     if cache_data["autopilot_hdg_window"] == 0 then
         str_hdg = "---"
-        lcd_flags['hdg_managed'].value = 1
+        lcd_flags_fcu['hdg_managed'].value = 1
     end
     if cache_data["autopilot_fpa_window"] == 0 then
         str_vs = "----"
-        lcd_flags["vs_vert"].value  = 0
+        lcd_flags_fcu["vs_vert"].value  = 0
         -- more complicated should depends on autopilot_status
-        lcd_flags['alt_managed'].value = 1
+        lcd_flags_fcu['alt_managed'].value = 1
     elseif trkfpa == 0 then 
         str_vs = rjust(tostring(math.floor(vs/100)), 2, '0')
         str_vs = ljust(str_vs, 4, "#")
@@ -715,13 +798,42 @@ function refresh_dataref()
         vs = (vs+0.05)*10
         str_vs = rjust(tostring(math.floor(vs)), 2, '0')
         str_vs = ljust(str_vs, 4, " ")
-        lcd_flags["fpa_comma"].value = 1
+        lcd_flags_fcu["fpa_comma"].value = 1
         set_button_assignment(FCU_BUTTON_BEGIN+btn["VS_DEC"].id, "laminar/A333/autopilot/fpa_decrease")
         set_button_assignment(FCU_BUTTON_BEGIN+btn["VS_INC"].id, "laminar/A333/autopilot/fpa_increase")
     end
+
+    --EFIS R--
+    --QFE marker
+    --always off, it has never been observed in the sim
+    lcd_flags_efisr["qfe"].value = 0
+    --Baro
+    local baro_value_r = cache_data["baro_value_r"] 
+    local str_baro_r = ""
+    local unitIsInHg = (cache_data["baro_inhg_r"] == 0)
+    local isQnh = (cache_data["baro_mode_r"] == 0)
+    if(not isQnh) then
+        --Case: Std
+        lcd_flags_efisr["qnh"].value = 0
+        lcd_flags_efisr["unitInHg"].value = 0
+        str_baro_r = "STD " 
+    elseif(isQnh and unitIsInHg) then
+        --Case: Local baro in inHg
+        lcd_flags_efisr["unitInHg"].value = 1
+        lcd_flags_efisr["qnh"].value = 1
+        str_baro_r = fix_str_len(baro_value_r*100,4) --scales by factor 100 to get rid of the point in e.g. 29.92
+    elseif(isQnh and not unitIsInHg) then
+        --Case: Local baro in hPa
+        lcd_flags_efisr["unitInHg"].value = 0
+        lcd_flags_efisr["qnh"].value = 1
+        str_baro_r = round(baro_value_r * 33.86389) --convert from inhg to hpa
+        str_baro_r = rjust(tostring(str_baro_r),4,'0')
+    end
+
     --hid_open
     local winwing_hid_dev = hid_open(0x4098, winwing_device.product_id)
-    draw_lcd(winwing_hid_dev, str_spd, str_hdg, str_alt, str_vs)
+    draw_fcu_lcd(winwing_hid_dev, str_spd, str_hdg, str_alt, str_vs)
+    draw_efisr_lcd(winwing_hid_dev, str_baro_r)
     set_led_brightness()
     set_led(winwing_hid_dev)
     hid_close(winwing_hid_dev)
