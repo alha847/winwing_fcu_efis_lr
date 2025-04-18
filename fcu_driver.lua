@@ -181,8 +181,9 @@ end
 
 --TODO: still working on it to load this button id begin from config automatic  button IDs might change across different machines
 --you can find the button id in X-Plane 12/Output/preferences/control profiles/{your device profile}.prf
-FCU_BUTTON_BEGIN = 1120--800
+FCU_BUTTON_BEGIN = 480--1120--800
 local btn = {}
+--FCU
 btn["MACH"] = {id=0,dataref="sim/autopilot/knots_mach_toggle"}
 btn["LOC"] = {id=1,dataref="sim/autopilot/NAV"}
 btn["TRK"] = {id=2,dataref="sim/autopilot/trkfpa"}
@@ -210,13 +211,129 @@ btn["VS_PUSH"] = {id=23,dataref="laminar/A333/autopilot/vertical_knob_push"}
 btn["VS_PULL"] = {id=24,dataref="laminar/A333/autopilot/vertical_knob_pull"}
 btn["ALT100"] = {id=25,dataref="laminar/A333/autopilot/alt_step_left"}
 btn["ALT1000"] = {id=26,dataref="laminar/A333/autopilot/alt_step_right"}
+--EFIS R
+btn["FD_R"] = {id=64,dataref="sim/autopilot/fdir2_command_bars_toggle"}
+btn["LS_R"] = {id=65,dataref="laminar/A333/buttons/fo_ils_bars_push"}
+btn["CSTR_R"] = {id=66,dataref="laminar/A333/buttons/fo_EFIS_CSTR"}
+btn["WPT_R"] = {id=67,dataref="sim/instruments/EFIS_copilot_fix"}
+btn["VORD_R"] = {id=68,dataref="sim/instruments/EFIS_copilot_vor"}
+btn["NDB_R"] = {id=69,dataref="sim/instruments/EFIS_copilot_ndb"}
+btn["ARPT_R"] = {id=70,dataref="sim/instruments/EFIS_copilot_apt"}
+btn["BARO_PUSH_R"] = {id=71,dataref="laminar/A333/push/baro/fo_std"}
+btn["BARO_PULL_R"] = {id=72,dataref="laminar/A333/pull/baro/fo_std"}
+btn["BARO_DEC_R"] = {id=73,dataref="sim/instruments/barometer_copilot_down"}
+btn["BARO_INC_R"] = {id=74,dataref="sim/instruments/barometer_copilot_up"}
+btn["BARO_HG"] = {id=75,dataref="laminar/A333/knob/baro/fo_inHg"}
+btn["BARO_HPA"] = {id=76,dataref="laminar/A333/knob/baro/fo_hPa"} 
+btn["MAP_LS_R"] = {id=77,dataref="alha847/lra333/knob/EFIS_R_map_LS"} 
+btn["MAP_VOR_R"] = {id=78,dataref="alha847/lra333/knob/EFIS_R_map_VOR"}
+btn["MAP_NAV_R"] = {id=79,dataref="alha847/lra333/knob/EFIS_R_map_NAV"} 
+btn["MAP_ARC_R"] = {id=80,dataref="alha847/lra333/knob/EFIS_R_map_ARC"}
+btn["MAP_PLAN_R"] = {id=81,dataref="alha847/lra333/knob/EFIS_R_map_PLAN"}
+btn["MAP_RANGE10_R"] = {id=82,dataref="alha847/lra333/knob/EFIS_R_map_RANGE10"}
+btn["MAP_RANGE20_R"] = {id=83,dataref="alha847/lra333/knob/EFIS_R_map_RANGE20"}
+btn["MAP_RANGE40_R"] = {id=84,dataref="alha847/lra333/knob/EFIS_R_map_RANGE40"}
+btn["MAP_RANGE80_R"] = {id=85,dataref="alha847/lra333/knob/EFIS_R_map_RANGE80"}
+btn["MAP_RANGE160_R"] = {id=86,dataref="alha847/lra333/knob/EFIS_R_map_RANGE160"}
+btn["MAP_RANGE320_R"] = {id=87,dataref="alha847/lra333/knob/EFIS_R_map_RANGE320"}
+btn["VOR1_R"] = {id=88,dataref="sim/instruments/EFIS_1_copilot_sel_vor"}
+btn["OFF1_R"] = {id=89,dataref="sim/instruments/EFIS_1_copilot_sel_off"}
+btn["ADF1_R"] = {id=90,dataref="sim/instruments/EFIS_1_copilot_sel_adf"}
+btn["VOR2_R"] = {id=91,dataref="sim/instruments/EFIS_2_copilot_sel_vor"}
+btn["OFF2_R"] = {id=92,dataref="sim/instruments/EFIS_2_copilot_sel_off"}
+btn["ADF2_R"] = {id=93,dataref="sim/instruments/EFIS_2_copilot_sel_adf"}
+
+--Set EFIS map mode in sim
+--cpt_side: 0 = captain, 1 = first officer
+--desired_mode: 0 = ls, 1 = vor, 2 = nav, 3 = arc, 4 = plan 
+function efis_map_mode_cmd_handler(cpt_side, desired_mode)
+
+    --todo currently only EFIS R supported
+    if(cpt_side ~=1) then
+        return
+    end
+
+    --todo efis knobs need to be added to the startup setting
+
+    --Get current EFIS map mode
+    --source:A333.switches.lua
+    local current_mode = cache_data["map_mode_r"]
+
+    --Determine how often the knob has to be turned and in which direction it has to be turned, then
+    --turn the knob in the sim to the desired position.
+    --This quite complicated solution is necessary, as the actual dataref controlling the map mode 
+    --(e.g. laminar/A333/knobs/EFIS_mode_pos_fo) is readonly and can be accessed by certain commands
+    --(e.g. laminar/A333/knobs/fo_EFIS_knob_left) only
+    local mode_diff = current_mode - desired_mode
+    if(mode_diff > 0) then
+        for idx=1,mode_diff do
+            command_once("laminar/A333/knobs/fo_EFIS_knob_left")
+        end
+    elseif(mode_diff < 0) then
+        for idx=1,math.abs(mode_diff) do
+            command_once("laminar/A333/knobs/fo_EFIS_knob_right")
+        end
+    end
+    
+end
+
+--Set EFIS map range in sim
+--cpt_side: 0 = captain, 1 = first officer
+--desired_range: 0 = 10, 1 = 20, 2 = 40, 3 = 80, 4 = 160, 5 = 320 
+function efis_map_range_cmd_handler(cpt_side, desired_range)
+
+    --todo currently only EFIS R supported
+    if(cpt_side ~=1) then
+        return
+    end
+
+    --todo efis knobs need to be added to the startup setting
+
+    --Get current EFIS map range
+    --source:A330_vrconfig.txt
+    local current_range = cache_data["map_range_r"]
+
+    --print(current_range.." - "..desired_range)
+
+    --Determine how often the knob has to be turned and in which direction it has to be turned, then
+    --turn the knob in the sim to the desired position.
+    --This quite complicated solution is necessary, as the actual dataref controlling the map range
+    --(e.g. laminar/A333/knobs/EFIS_mode_pos_fo) is readonly and can be accessed by certain commands
+    --(e.g. laminar/A333/knobs/fo_EFIS_knob_left) only
+    local range_diff = current_range - desired_range
+    if(range_diff > 0) then
+        for idx=1,range_diff do
+            command_once("sim/instruments/map_copilot_zoom_in")
+        end
+    elseif(range_diff < 0) then
+        for idx=1,math.abs(range_diff) do
+            command_once("sim/instruments/map_copilot_zoom_out")
+        end
+    end
+    
+end
+
+
+--Custom commands for the EFIS R map mode knob
+create_command("alha847/lra333/knob/EFIS_R_map_LS", "Set EFIS R map mode to LS for LR A333", "efis_map_mode_cmd_handler(1,0)","","")
+create_command("alha847/lra333/knob/EFIS_R_map_VOR", "Set EFIS R map mode to VOR for LR A333", "efis_map_mode_cmd_handler(1,1)","","")
+create_command("alha847/lra333/knob/EFIS_R_map_NAV", "Set EFIS R map mode to NAV for LR A333", "efis_map_mode_cmd_handler(1,2)","","")
+create_command("alha847/lra333/knob/EFIS_R_map_ARC", "Set EFIS R map mode to ARC for LR A333", "efis_map_mode_cmd_handler(1,3)","","")
+create_command("alha847/lra333/knob/EFIS_R_map_PLAN", "Set EFIS R map mode to PLAN for LR A333", "efis_map_mode_cmd_handler(1,4)","","")
+
+--Custom commands for the EFIS R map range knob
+create_command("alha847/lra333/knob/EFIS_R_map_RANGE10", "Set EFIS R map range to 10 for LR A333", "efis_map_range_cmd_handler(1,0)","","")
+create_command("alha847/lra333/knob/EFIS_R_map_RANGE20", "Set EFIS R map range to 20 for LR A333", "efis_map_range_cmd_handler(1,1)","","")
+create_command("alha847/lra333/knob/EFIS_R_map_RANGE40", "Set EFIS R map range to 40 or LR A333", "efis_map_range_cmd_handler(1,2)","","")
+create_command("alha847/lra333/knob/EFIS_R_map_RANGE80", "Set EFIS R map range to 80 for LR A333", "efis_map_range_cmd_handler(1,3)","","")
+create_command("alha847/lra333/knob/EFIS_R_map_RANGE160", "Set EFIS R map range to 160 for LR A333", "efis_map_range_cmd_handler(1,4)","","")
+create_command("alha847/lra333/knob/EFIS_R_map_RANGE320", "Set EFIS R map range to 320 for LR A333", "efis_map_range_cmd_handler(1,5)","","")
 
 function assign_button()
     for _, info in pairs(btn) do
         set_button_assignment(info.id+FCU_BUTTON_BEGIN, info.dataref)
     end
 end
-
 
 --register event from xp
 dataref("autopilot_spd", "sim/cockpit2/autopilot/airspeed_dial_kts_mach", "readonly")
@@ -237,8 +354,18 @@ dataref("autopilot_trkfpa", "sim/cockpit2/autopilot/trk_fpa", "readonly")
 dataref("autopilot_alt_mode","laminar/A333/annun/autopilot/alt_mode", "readonly") --annun means annunciator 
 dataref("bus1_volts", "sim/cockpit2/electrical/bus_volts", "readonly", 0)
 dataref("bus2_volts", "sim/cockpit2/electrical/bus_volts", "readonly", 1)
+dataref("fd_r", "sim/cockpit2/autopilot/flight_director2_mode", "readonly")
+dataref("ls_r", "laminar/A333/status/fo_ls_bars", "readonly")
+dataref("cstr_r", "sim/cockpit2/EFIS/EFIS_data_on_copilot", "readonly")
+dataref("wpt_r", "sim/cockpit2/EFIS/EFIS_fix_on_copilot", "readonly")
+dataref("vord_r", "sim/cockpit2/EFIS/EFIS_vor_on_copilot", "readonly")
+dataref("ndb_r", "sim/cockpit2/EFIS/EFIS_ndb_on_copilot", "readonly")
+dataref("arpt_r", "sim/cockpit2/EFIS/EFIS_airport_on_copilot", "readonly")
+dataref("map_mode_r", "laminar/A333/knobs/EFIS_mode_pos_fo", "readonly")
+dataref("map_range_r", "sim/cockpit2/EFIS/map_range_copilot", "readonly")
 
 cache_data={}
+--FCU
 cache_data["autopilot_spd"] = 0
 cache_data["autopilot_spd_is_mach"] = 0
 cache_data["autopilot_hdg_mag"] = 0
@@ -257,6 +384,16 @@ cache_data["autopilot_trkfpa"] = 0
 cache_data["autopilot_alt_mode"] = 0 
 cache_data["bus1_volts"] = 0
 cache_data["bus2_volts"] = 0
+--EFIS R
+cache_data["fd_r"] = 0
+cache_data["ls_r"] = 0
+cache_data["cstr_r"] = 0
+cache_data["wpt_r"] = 0
+cache_data["vord_r"] = 0
+cache_data["ndb_r"] = 0
+cache_data["arpt_r"] = 0
+cache_data["map_mode_r"] = 0
+cache_data["map_range_r"] = 0
 
 --define led 
 led_list = {
