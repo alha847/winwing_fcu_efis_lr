@@ -1,64 +1,47 @@
-# Winwing Fcu
-This script is to use Winwing A320 FCU on Linux (maybe Mac-OS) with X-Plane. 
-All buttons, leds and lcd displays work the same way as in X-Plane.<br>
-Tested with:
- * XP12 under linux (debian trixie)
- * XP11 under linux (debian bookworm)
- * XP12 under MacOs (Sequoia 15.0.1)
- * Toliss A319, A320Neo, A321Neo, A339, A340-600
+# Winwing FCU, EFIS L and EFIS R
 
-Supported Hardware:
- * Winwing FCU: fully supported
- * Winwing EFIS-R: fully supported
- * Winwing EFIS-L: fully supported
+## Intro
 
-## Installation
+Status: Currently FCU supported, EFIS R partly supported.
 
-#### Debian based system
-1. clone the repo where you want
-2. copy `udev/71-winwing.rules` to `/etc/udev/rules.d`  
-`sudo cp udev/71-winwing.rules /etc/udev/rules.d/`
-3. install dependencies (on debian based systems)  
-`sudo aptitude install python3-usb`
-4. start script (with udev rule no sudo needed): `python3 ./winwing_fcu.py` when X-Plane with Toliss aircraft is loaded.
+This script allows to use Winwing A320 FCU, EFIS L and EFIS R on macOS with X-Plane 12.
 
+The only dependency is FlyWithLua NG+.
 
-#### MAC-OS
+Tested on MacBook M1 Pro with macOS 15.4, XP12.2.0 beta 3, default LR A333, FlyWithLua NG+ 2.8.12. todo add fcu, efis l and efis r fw version, 
 
-1. clone the repo where you want
-2. install homebrew
-3. install dependencies
-`python3 -m pip install pyusb`
-4. brew install libusb
-5. let pyusb find libusb: `ln -s /opt/homebrew/lib ~/lib` 
-6. start script with sudo: `sudo python3 ./winwing_fcu.py` when X-Plane with Toliss aircraft is loaded.
-7. A detailed installation instruction can be found on [x-plane forum](https://forums.x-plane.org/index.php?/forums/topic/310045-winwing-fcu-on-plane-12-on-a-mac-studio/&do=findComment&comment=2798635).
+This script might work with Windows or Linux as well, but never tested. 
 
-## Use FCU
-1. start X-Plane
-2. load Toliss A319
-3. start script as written above
-4. enjoy flying (and report bugs :-)  )
+This work heavily bases on the work from [schenlap](https://github.com/schenlap/winwing_fcu) and [samrq](https://github.com/samrq/winwing_fcu/tree/main). Thanks a lot to both of them. 
 
-![fcu demo image](./documentation/fcu_demo.gif)
+## Features
 
-Change brightness with the two brightness knobs in the cockpit.
-![fcu demo image](./documentation/xplane_fcu_brightness.png)
+* When starting X-Plane, LEDs and LCDs at Winwing FCU / EFIS are set according to the sim LEDs and LCDs. 
+* When starting X-Plane, the current position of physical switches or knobs (e.g. 100/1000ft selector for altitude) at Winwing FCU / EFIS is applied to the sim FCU and EFIS.
+* LEDs and LCDs on Winwing FCU and EFIS are turned on or off depending on the status of the electric system (batteries, generators, external power). Same behaviour as sim FCU and EFIS show.
+* You can turn switches / knobs in the sim as you want without breaking the script. The next time you turn them on the Winwing device, they will take the position from the device again. In this way, you can set the EFIS map mode to "ENG" in the sim, what is not possbile with the Winwing EFIS (as the Winwing device is mimicing the A320, not the A330).
 
+## Installation on macOS
 
-## developer documentation
-See [documention](./documentation/README.md) for developers
+1. Clone the repo where you want
+2. Install FlyWithLua NG+ for XP12, cf. https://forums.x-plane.org/files/file/82888-flywithlua-ng-next-generation-plus-edition-for-x-plane-12-win-lin-mac/
+3. Copy (todo).lua to {XP12_ROOT}/Resources/plugins/FlyWithLua/Scripts
+4. Manually determine the correct value for the variable FCU_BUTTON_BEGIN in the lua file, cf. below in section "Known bugs" 
+5. Calibrating the FCU / EFIS inside XP12 is not necessary, you can ignore a pop-up reminding you of it
 
-## Notes
-Use at your own risk. Updates to the FCU can make the script incompatible.
-TODO: The data sent in the USB protocol by SimApp Pro has not yet been fully implemented, only to the extent that it currently works.
+## Use
+
+1. Connect FCU and optional EFIS to the PC
+2. Start X-Plane and enjoy
+3. If you disconnect and reconnect the FCU / EFIS while X-Plane is running, go to "Plugins" -> "FlyWithLua" -> "Reload all Lua script files" in order to init the lua scripts again
+
+Use at your own risk. 
 
 ## Next steps
- * remove libusb dependency
+* Make LED and LCD brightness adjustable
 
-## Contact
-<memo_5_@gmx.at> (without the two underscores!) or as pm in https://forums.x-plane.org, user memo5.
+## Known bugs
+* If you turn e.g. the altitude knob at the winwing FCU, sometimes the e.g. altitude value does not stop spinning until it reaches the limit, e.g. 72,000, even when you have stopped turning the knob already
+* Before the first use, you manually need to set the offset for the button ids in the variable FCU_BUTTON_BEGIN. It seems that the necessary value is a multiple of 160, it might change if you add / remove one of the EFIS devices from the FCU. If you don't change anything with your physical setup, the value should remain the same. You can determine it by ... todo 
+* Please open an Github issue if you find any other bugs
 
-## Sponsoring
-To sponsor the next project (maybe MCDU from winwing when it is available and seems doable) you can ![buy_me_a_coffee](https://github.com/user-attachments/assets/d0a94d75-9ad3-41e4-8b89-876c0a2fdf36)
-[http://buymeacoffee.com/schenlap](http://buymeacoffee.com/schenlap)
