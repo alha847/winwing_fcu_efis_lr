@@ -75,6 +75,7 @@ function init_fcu_switches()
 
 end
 
+--todo transfer to efis l
 function init_efisr_switches()
 
     local winwing_hid_dev = hid_open(0x4098, winwing_device.product_id)
@@ -149,6 +150,9 @@ function set_led_brightness()
         led_list_fcu[1].bind = 128
         led_list_fcu[2].bind = 255
         led_list_fcu[3].bind = 255
+        led_list_efis_l[1].bind = 128
+        led_list_efis_l[2].bind = 255
+        led_list_efis_l[3].bind = 255
         led_list_efis_r[1].bind = 128
         led_list_efis_r[2].bind = 255
         led_list_efis_r[3].bind = 255
@@ -156,6 +160,9 @@ function set_led_brightness()
         led_list_fcu[1].bind = 0
         led_list_fcu[2].bind = 0
         led_list_fcu[3].bind = 0
+        led_list_efis_l[1].bind = 0
+        led_list_efis_l[2].bind = 0
+        led_list_efis_l[3].bind = 0
         led_list_efis_r[1].bind = 0
         led_list_efis_r[2].bind = 0
         led_list_efis_r[3].bind = 0
@@ -217,6 +224,37 @@ btn["VS_PUSH"] = {id=23,dataref="laminar/A333/autopilot/vertical_knob_push"}
 btn["VS_PULL"] = {id=24,dataref="laminar/A333/autopilot/vertical_knob_pull"}
 btn["ALT100"] = {id=25,dataref="laminar/A333/autopilot/alt_step_left"}
 btn["ALT1000"] = {id=26,dataref="laminar/A333/autopilot/alt_step_right"}
+--EFIS L
+btn["FD_L"] = {id=32,dataref="sim/autopilot/fdir_command_bars_toggle"}
+btn["LS_L"] = {id=33,dataref="laminar/A333/buttons/capt_ils_bars_push"}
+btn["CSTR_L"] = {id=34,dataref="laminar/A333/buttons/capt_EFIS_CSTR"}
+btn["WPT_L"] = {id=35,dataref="sim/instruments/EFIS_fix"}
+btn["VORD_L"] = {id=36,dataref="sim/instruments/EFIS_vor"}
+btn["NDB_L"] = {id=37,dataref="sim/instruments/EFIS_ndb"}
+btn["ARPT_L"] = {id=38,dataref="sim/instruments/EFIS_apt"}
+btn["BARO_PUSH_L"] = {id=39,dataref="laminar/A333/push/baro/capt_std"}
+btn["BARO_PULL_L"] = {id=40,dataref="laminar/A333/pull/baro/capt_std"}
+btn["BARO_DEC_L"] = {id=41,dataref="sim/instruments/barometer_down"}
+btn["BARO_INC_L"] = {id=42,dataref="sim/instruments/barometer_up"}
+btn["BARO_HG_L"] = {id=43,dataref="laminar/A333/knob/baro/capt_inHg"}
+btn["BARO_HPA_L"] = {id=44,dataref="laminar/A333/knob/baro/capt_hPa"} 
+btn["MAP_LS_L"] = {id=45,dataref="alha847/lra333/knob/EFIS_L_map_LS"} 
+btn["MAP_VOR_L"] = {id=46,dataref="alha847/lra333/knob/EFIS_L_map_VOR"}
+btn["MAP_NAV_L"] = {id=47,dataref="alha847/lra333/knob/EFIS_L_map_NAV"} 
+btn["MAP_ARC_L"] = {id=48,dataref="alha847/lra333/knob/EFIS_L_map_ARC"}
+btn["MAP_PLAN_L"] = {id=49,dataref="alha847/lra333/knob/EFIS_L_map_PLAN"}
+btn["MAP_RANGE10_L"] = {id=50,dataref="alha847/lra333/knob/EFIS_L_map_RANGE10"}
+btn["MAP_RANGE20_L"] = {id=51,dataref="alha847/lra333/knob/EFIS_L_map_RANGE20"}
+btn["MAP_RANGE40_L"] = {id=52,dataref="alha847/lra333/knob/EFIS_L_map_RANGE40"}
+btn["MAP_RANGE80_L"] = {id=53,dataref="alha847/lra333/knob/EFIS_L_map_RANGE80"}
+btn["MAP_RANGE160_L"] = {id=54,dataref="alha847/lra333/knob/EFIS_L_map_RANGE160"}
+btn["MAP_RANGE320_L"] = {id=55,dataref="alha847/lra333/knob/EFIS_L_map_RANGE320"}
+btn["ADF1_L"] = {id=56,dataref="sim/instruments/EFIS_1_pilot_sel_adf"}
+btn["OFF1_L"] = {id=57,dataref="sim/instruments/EFIS_1_pilot_sel_off"}
+btn["VOR1_L"] = {id=58,dataref="sim/instruments/EFIS_1_pilot_sel_vor"}
+btn["ADF2_L"] = {id=59,dataref="sim/instruments/EFIS_2_pilot_sel_adf"}
+btn["OFF2_L"] = {id=60,dataref="sim/instruments/EFIS_2_pilot_sel_off"}
+btn["VOR2_L"] = {id=61,dataref="sim/instruments/EFIS_2_pilot_sel_vor"}
 --EFIS R
 btn["FD_R"] = {id=64,dataref="sim/autopilot/fdir2_command_bars_toggle"}
 btn["LS_R"] = {id=65,dataref="laminar/A333/buttons/fo_ils_bars_push"}
@@ -229,8 +267,8 @@ btn["BARO_PUSH_R"] = {id=71,dataref="laminar/A333/push/baro/fo_std"}
 btn["BARO_PULL_R"] = {id=72,dataref="laminar/A333/pull/baro/fo_std"}
 btn["BARO_DEC_R"] = {id=73,dataref="sim/instruments/barometer_copilot_down"}
 btn["BARO_INC_R"] = {id=74,dataref="sim/instruments/barometer_copilot_up"}
-btn["BARO_HG"] = {id=75,dataref="laminar/A333/knob/baro/fo_inHg"}
-btn["BARO_HPA"] = {id=76,dataref="laminar/A333/knob/baro/fo_hPa"} 
+btn["BARO_HG"] = {id=75,dataref="laminar/A333/knob/baro/fo_inHg"} --todo add _R in name
+btn["BARO_HPA"] = {id=76,dataref="laminar/A333/knob/baro/fo_hPa"} --todo add _R in name
 btn["MAP_LS_R"] = {id=77,dataref="alha847/lra333/knob/EFIS_R_map_LS"} 
 btn["MAP_VOR_R"] = {id=78,dataref="alha847/lra333/knob/EFIS_R_map_VOR"}
 btn["MAP_NAV_R"] = {id=79,dataref="alha847/lra333/knob/EFIS_R_map_NAV"} 
@@ -254,16 +292,27 @@ btn["ADF2_R"] = {id=93,dataref="sim/instruments/EFIS_2_copilot_sel_adf"}
 --desired_mode: 0 = ls, 1 = vor, 2 = nav, 3 = arc, 4 = plan 
 function efis_map_mode_cmd_handler(cpt_side, desired_mode)
 
-    --todo currently only EFIS R supported
-    if(cpt_side ~=1) then
-        return
-    end
-
     --todo efis knobs need to be added to the startup setting
+
+    local isCapt = (cpt_side == 0)
+    local isFo = (cpt_side == 1)
 
     --Get current EFIS map mode
     --source:A333.switches.lua
-    local current_mode = cache_data["map_mode_r"]
+    local current_mode
+    local command_left
+    local command_right
+    if(isCapt) then
+        current_mode = cache_data["map_mode_l"]
+        command_left = "laminar/A333/knobs/capt_EFIS_knob_left"
+        command_right = "laminar/A333/knobs/capt_EFIS_knob_right"
+    elseif(isFo) then
+        current_mode = cache_data["map_mode_r"]
+        command_left = "laminar/A333/knobs/fo_EFIS_knob_left"
+        command_right = "laminar/A333/knobs/fo_EFIS_knob_right"
+    else
+        logMsg("efis_map_mode_cmd_handler(): Neither capt nor fo selected...")
+    end
 
     --Determine how often the knob has to be turned and in which direction it has to be turned, then
     --turn the knob in the sim to the desired position.
@@ -273,11 +322,11 @@ function efis_map_mode_cmd_handler(cpt_side, desired_mode)
     local mode_diff = current_mode - desired_mode
     if(mode_diff > 0) then
         for idx=1,mode_diff do
-            command_once("laminar/A333/knobs/fo_EFIS_knob_left")
+            command_once(command_left)
         end
     elseif(mode_diff < 0) then
         for idx=1,math.abs(mode_diff) do
-            command_once("laminar/A333/knobs/fo_EFIS_knob_right")
+            command_once(command_right)
         end
     end
     
@@ -288,16 +337,27 @@ end
 --desired_range: 0 = 10, 1 = 20, 2 = 40, 3 = 80, 4 = 160, 5 = 320 
 function efis_map_range_cmd_handler(cpt_side, desired_range)
 
-    --todo currently only EFIS R supported
-    if(cpt_side ~=1) then
-        return
-    end
-
     --todo efis knobs need to be added to the startup setting
+
+    local isCapt = (cpt_side == 0)
+    local isFo = (cpt_side == 1)
 
     --Get current EFIS map range
     --source:A330_vrconfig.txt
-    local current_range = cache_data["map_range_r"]
+    local current_range
+    local command_left
+    local command_right
+    if(isCapt) then
+        current_range = cache_data["map_range_l"]
+        command_left = "sim/instruments/map_zoom_in"
+        command_right = "sim/instruments/map_zoom_out"
+    elseif(isFo) then
+        current_range = cache_data["map_range_r"]
+        command_left = "sim/instruments/map_copilot_zoom_in"
+        command_right = "sim/instruments/map_copilot_zoom_out"
+    else
+        logMsg("efis_map_range_cmd_handler(): Neither capt nor fo selected...")
+    end
 
     --print(current_range.." - "..desired_range)
 
@@ -309,16 +369,30 @@ function efis_map_range_cmd_handler(cpt_side, desired_range)
     local range_diff = current_range - desired_range
     if(range_diff > 0) then
         for idx=1,range_diff do
-            command_once("sim/instruments/map_copilot_zoom_in")
+            command_once(command_left)
         end
     elseif(range_diff < 0) then
         for idx=1,math.abs(range_diff) do
-            command_once("sim/instruments/map_copilot_zoom_out")
+            command_once(command_right)
         end
     end
     
 end
 
+--Custom commands for the EFIS L map mode knob
+create_command("alha847/lra333/knob/EFIS_L_map_LS", "Set EFIS L map mode to LS for LR A333", "efis_map_mode_cmd_handler(0,0)","","")
+create_command("alha847/lra333/knob/EFIS_L_map_VOR", "Set EFIS L map mode to VOR for LR A333", "efis_map_mode_cmd_handler(0,1)","","")
+create_command("alha847/lra333/knob/EFIS_L_map_NAV", "Set EFIS L map mode to NAV for LR A333", "efis_map_mode_cmd_handler(0,2)","","")
+create_command("alha847/lra333/knob/EFIS_L_map_ARC", "Set EFIS L map mode to ARC for LR A333", "efis_map_mode_cmd_handler(0,3)","","")
+create_command("alha847/lra333/knob/EFIS_L_map_PLAN", "Set EFIS L map mode to PLAN for LR A333", "efis_map_mode_cmd_handler(0,4)","","")
+
+--Custom commands for the EFIS L map range knob
+create_command("alha847/lra333/knob/EFIS_L_map_RANGE10", "Set EFIS L map range to 10 for LR A333", "efis_map_range_cmd_handler(0,0)","","")
+create_command("alha847/lra333/knob/EFIS_L_map_RANGE20", "Set EFIS L map range to 20 for LR A333", "efis_map_range_cmd_handler(0,1)","","")
+create_command("alha847/lra333/knob/EFIS_L_map_RANGE40", "Set EFIS L map range to 40 or LR A333", "efis_map_range_cmd_handler(0,2)","","")
+create_command("alha847/lra333/knob/EFIS_L_map_RANGE80", "Set EFIS L map range to 80 for LR A333", "efis_map_range_cmd_handler(0,3)","","")
+create_command("alha847/lra333/knob/EFIS_L_map_RANGE160", "Set EFIS L map range to 160 for LR A333", "efis_map_range_cmd_handler(0,4)","","")
+create_command("alha847/lra333/knob/EFIS_L_map_RANGE320", "Set EFIS L map range to 320 for LR A333", "efis_map_range_cmd_handler(0,5)","","")
 
 --Custom commands for the EFIS R map mode knob
 create_command("alha847/lra333/knob/EFIS_R_map_LS", "Set EFIS R map mode to LS for LR A333", "efis_map_mode_cmd_handler(1,0)","","")
@@ -342,6 +416,8 @@ function assign_button()
 end
 
 --register event from xp
+--sources: e.g. A333.systems.lua, A333.switches.lua
+--FCU
 dataref("autopilot_spd", "sim/cockpit2/autopilot/airspeed_dial_kts_mach", "readonly")
 dataref("autopilot_spd_is_mach" ,"sim/cockpit/autopilot/airspeed_is_mach", "readonly")
 dataref("autopilot_hdg_mag", "sim/cockpit/autopilot/heading_mag", "readonly")
@@ -360,6 +436,20 @@ dataref("autopilot_trkfpa", "sim/cockpit2/autopilot/trk_fpa", "readonly")
 dataref("autopilot_alt_mode","laminar/A333/annun/autopilot/alt_mode", "readonly") --annun means annunciator 
 dataref("bus1_volts", "sim/cockpit2/electrical/bus_volts", "readonly", 0)
 dataref("bus2_volts", "sim/cockpit2/electrical/bus_volts", "readonly", 1)
+--EFIS L
+dataref("fd_l", "sim/cockpit2/autopilot/flight_director_mode", "readonly")
+dataref("ls_l", "laminar/A333/status/capt_ls_bars", "readonly")
+dataref("cstr_l", "sim/cockpit2/EFIS/EFIS_data_on", "readonly")
+dataref("wpt_l", "sim/cockpit2/EFIS/EFIS_fix_on", "readonly")
+dataref("vord_l", "sim/cockpit2/EFIS/EFIS_vor_on", "readonly")
+dataref("ndb_l", "sim/cockpit2/EFIS/EFIS_ndb_on", "readonly")
+dataref("arpt_l", "sim/cockpit2/EFIS/EFIS_airport_on", "readonly")
+dataref("map_mode_l", "laminar/A333/knobs/EFIS_mode_pos_capt", "readonly")
+dataref("map_range_l", "sim/cockpit2/EFIS/map_range", "readonly")
+dataref("baro_value_l", "sim/cockpit2/gauges/actuators/barometer_setting_in_hg_pilot", "readonly") --baro value in inHg
+dataref("baro_inhg_l", "laminar/A333/barometer/capt_inHg_hPa_pos", "readonly") --0=inhg, 1=hpa
+dataref("baro_mode_l", "laminar/A333/barometer/capt_mode", "readonly") --0=qnh, 1=std
+--EFIS R
 dataref("fd_r", "sim/cockpit2/autopilot/flight_director2_mode", "readonly")
 dataref("ls_r", "laminar/A333/status/fo_ls_bars", "readonly")
 dataref("cstr_r", "sim/cockpit2/EFIS/EFIS_data_on_copilot", "readonly")
@@ -393,6 +483,19 @@ cache_data["autopilot_trkfpa"] = 0
 cache_data["autopilot_alt_mode"] = 0 
 cache_data["bus1_volts"] = 0
 cache_data["bus2_volts"] = 0
+--EFIS L
+cache_data["fd_l"] = 0
+cache_data["ls_l"] = 0
+cache_data["cstr_l"] = 0
+cache_data["wpt_l"] = 0
+cache_data["vord_l"] = 0
+cache_data["ndb_l"] = 0
+cache_data["arpt_l"] = 0
+cache_data["map_mode_l"] = 0
+cache_data["map_range_l"] = 0
+cache_data["baro_value_l"] = 0
+cache_data["baro_inhg_l"] = 0
+cache_data["baro_mode_l"] = 0
 --EFIS R
 cache_data["fd_r"] = 0
 cache_data["ls_r"] = 0
@@ -422,6 +525,20 @@ led_list_fcu = {
     {id = 17,   bind="",                    val = 0},
     {id = 30,   bind="",  val = 0},
 }
+--EFIS L
+led_list_efis_l = {
+    {id = 0,    bind="",                    val = 256}, --led backlight
+    {id = 1,    bind="",                    val = 256}, --lcd backlight
+    {id = 2,    bind="",                    val = 256},
+    {id = 3,    bind="fd_l",                val = 0},
+    {id = 4,    bind="ls_l",                val = 0},
+    {id = 5,    bind="cstr_l",              val = 0},
+    {id = 6,    bind="wpt_l",               val = 0},
+    {id = 7,    bind="vord_l",              val = 0},
+    {id = 8,    bind="ndb_l",               val = 0},
+    {id = 9,    bind="arpt_l",              val = 0}  
+}
+
 --EFIS R
 led_list_efis_r = {
     {id = 0,    bind="",                    val = 256}, --led backlight
@@ -462,6 +579,11 @@ lcd_flags_fcu["ffpa2"] = {byte = 10, mask = 0x80, value = 0}
 lcd_flags_fcu["fpa_comma"] = {byte = 9, mask = 0x10, value = 0}
 lcd_flags_fcu["mach_comma"] = {byte = 12, mask = 0x01, value = 0}
 --EFIS R
+local lcd_flags_efisl = {}
+lcd_flags_efisl["qfe"] = {byte = 0, mask = 0x01, value = 1} --todo check value
+lcd_flags_efisl["qnh"] = {byte = 0, mask = 0x02, value = 1} --todo check value
+lcd_flags_efisl["unitInHg"] = {byte = 2, mask = 0x80, value = 1}
+--EFIS R
 local lcd_flags_efisr = {}
 lcd_flags_efisr["qfe"] = {byte = 0, mask = 0x01, value = 1} --todo check value
 lcd_flags_efisr["qnh"] = {byte = 0, mask = 0x02, value = 1} --todo check value
@@ -475,19 +597,28 @@ function config_led(winwing_hid_dev, led, dev)
             logMsg("set led "..led.id.." "..flag)
             if(dev == "fcu") then
                 hid_write(winwing_hid_dev, 0, 0x02, 0x10, 0xbb, 0 , 0, 3, 0x49, led.id, flag, 0, 0, 0, 0, 0)
+            elseif(dev == "efis_l") then
+                hid_write(winwing_hid_dev, 0, 0x02, 0x0d, 0xbf, 0 , 0, 3, 0x49, led.id, flag, 0, 0, 0, 0, 0)
             elseif(dev == "efis_r") then
                 hid_write(winwing_hid_dev, 0, 0x02, 0x0e, 0xbf, 0 , 0, 3, 0x49, led.id, flag, 0, 0, 0, 0, 0)
+            else
+                logMsg("config_led(): Neither fcu, nor efis l or efis r selected.")
             end
             led.val = flag
         end
     end
 end
 
-
 function set_led(winwing_hid_dev)
+    --FCU
     for i, led in pairs(led_list_fcu) do
         config_led(winwing_hid_dev, led, "fcu")
     end
+    --EFIS L
+    for i, led in pairs(led_list_efis_l) do
+        config_led(winwing_hid_dev, led, "efis_l")
+    end
+    --EFIS R
     for i, led in pairs(led_list_efis_r) do
         config_led(winwing_hid_dev, led, "efis_r")
     end
@@ -599,19 +730,19 @@ function data_from_string_swapped_efis(l, input)
     --it is caused by the order in which the code was implemented.
     for i =0,l-1 do 
         n[i] = bit.bor(n[i], bit.band(d[i],0x08)>0 and 0x01 or 0x0 )
-        logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
+        --todo debug logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
         n[i] = bit.bor(n[i], bit.band(d[i],0x04)>0 and 0x02 or 0x0 )
-        logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
+        --todo debug logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
         n[i] = bit.bor(n[i], bit.band(d[i],0x02)>0 and 0x04 or 0x0 )
-        logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
+        --todo debug logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
         n[i] = bit.bor(n[i], bit.band(d[i],0x10)>0 and 0x08 or 0x0 )
-        logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
+        --todo debug logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
         n[i] = bit.bor(n[i], bit.band(d[i],0x80)>0 and 0x10 or 0x0 )
-        logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
+        --todo debug logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
         n[i] = bit.bor(n[i], bit.band(d[i],0x40)>0 and 0x20 or 0x0 )
-        logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
+        --todo debug logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
         n[i] = bit.bor(n[i], bit.band(d[i],0x20)>0 and 0x40 or 0x0 )
-        logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
+        --todo debug logMsg("n = "..n[0].."-"..n[1].."-"..n[2].."-"..n[3])
         n[i] = bit.bor(n[i], bit.band(d[i],0x01)>0 and 0x80 or 0x0 )
     end
 
@@ -645,6 +776,28 @@ function rjust(str, width, fillchar)
         return str
     end
     return string.rep(fillchar, padding) .. str
+end
+
+function draw_efisl_lcd(fcu, baro_l)
+
+    local b = data_from_string_swapped_efis(4, baro_l)
+
+    local bl = {}
+    for _, flag in pairs(lcd_flags_efisl) do
+        if bl[flag.byte] == nil then
+            bl[flag.byte] = 0
+        end
+        bl[flag.byte] = bit.bor(bl[flag.byte] ,(flag.mask *flag.value))
+    end
+
+    local pkg_nr = 1
+    hid_write(fcu, 0, 0xf0, 0x0, pkg_nr, 0x1a, 0x0d, 0xbf, 0x0, 0x0, 0x2, 0x1, 0x0, 0x0, 0xff, 0xff, 0x1d, 0x0, 0x0, 0x09, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+                b[3], bit.bor(b[2],bl[2]),
+                b[1], b[0], 
+                bl[0], 
+                0x0e, 0xbf, 0x0, 0x0, 0x3, 0x1, 0x0, 0x0, 0x4c, 0xc, 0x1d, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
+                )
+
 end
 
 function draw_efisr_lcd(fcu, baro_r)
@@ -803,6 +956,33 @@ function refresh_dataref()
         set_button_assignment(FCU_BUTTON_BEGIN+btn["VS_INC"].id, "laminar/A333/autopilot/fpa_increase")
     end
 
+    --EFIS L--
+    --QFE marker
+    --always off, it has never been observed in the sim
+    lcd_flags_efisl["qfe"].value = 0
+    --Baro
+    local baro_value_l = cache_data["baro_value_l"] 
+    local str_baro_l = ""
+    local unitIsInHg_l = (cache_data["baro_inhg_l"] == 0)
+    local isQnh_l = (cache_data["baro_mode_l"] == 0)
+    if(not isQnh_l) then
+        --Case: Std
+        lcd_flags_efisl["qnh"].value = 0
+        lcd_flags_efisl["unitInHg"].value = 0
+        str_baro_l = "STD " 
+    elseif(isQnh_l and unitIsInHg_l) then
+        --Case: Local baro in inHg
+        lcd_flags_efisl["unitInHg"].value = 1
+        lcd_flags_efisl["qnh"].value = 1
+        str_baro_l = fix_str_len(baro_value_l*100,4) --scales by factor 100 to get rid of the point in e.g. 29.92; --todo there is a small rounding error from 29.82 to 29.84
+    elseif(isQnh_l and not unitIsInHg_l) then
+        --Case: Local baro in hPa
+        lcd_flags_efisl["unitInHg"].value = 0
+        lcd_flags_efisl["qnh"].value = 1
+        str_baro_l = round(baro_value_l * 33.86389) --convert from inhg to hpa
+        str_baro_l = rjust(tostring(str_baro_l),4,'0')
+    end
+
     --EFIS R--
     --QFE marker
     --always off, it has never been observed in the sim
@@ -810,8 +990,8 @@ function refresh_dataref()
     --Baro
     local baro_value_r = cache_data["baro_value_r"] 
     local str_baro_r = ""
-    local unitIsInHg = (cache_data["baro_inhg_r"] == 0)
-    local isQnh = (cache_data["baro_mode_r"] == 0)
+    local unitIsInHg = (cache_data["baro_inhg_r"] == 0) --todo add_r to name
+    local isQnh = (cache_data["baro_mode_r"] == 0) --todo add_r to name
     if(not isQnh) then
         --Case: Std
         lcd_flags_efisr["qnh"].value = 0
@@ -833,6 +1013,7 @@ function refresh_dataref()
     --hid_open
     local winwing_hid_dev = hid_open(0x4098, winwing_device.product_id)
     draw_fcu_lcd(winwing_hid_dev, str_spd, str_hdg, str_alt, str_vs)
+    draw_efisl_lcd(winwing_hid_dev, str_baro_l)
     draw_efisr_lcd(winwing_hid_dev, str_baro_r)
     set_led_brightness()
     set_led(winwing_hid_dev)
